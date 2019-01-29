@@ -71,6 +71,7 @@ tan
 */
 import {LabelCharacter, LabelAlphabet, Label, Node, Edge, Graph} from './graph';
 
+import {Rewriter, Rule, GetNodeOperation} from './rewriting';
 
 /*
 const gpu = new GPU();
@@ -172,7 +173,7 @@ const main = function(){
 
 	const graph1 = new Graph(nodeAlphabet, edgeAlphabet);
 
-	const l1 = graph1.getNodeLabel([a, b]);
+	const l1 = graph1.getNodeLabel([b, a, c]);
 	const l2 = graph1.getNodeLabel([a, b]);
 	const l3 = graph1.getNodeLabel([a, b]);
 
@@ -225,7 +226,8 @@ const main = function(){
 
 	graph1.draw(document.getElementById('graph-container'));
 
-	let alphabetLength = 3; 
+
+	let alphabetLength = 3 + 1; 
 	// 10     => 999
 	// 100    => 999999
 	// 1000   => 999999999
@@ -237,7 +239,19 @@ const main = function(){
 	while (p--) {
 	  maxLabelID += maxAlphabetID * Math.pow(alphabetLength, p);
 	}
-	console.log(maxLabelID);
+	console.log('maxLabelID', maxLabelID);
+
+
+  let rewriter = new Rewriter(nodeAlphabet, edgeAlphabet);
+  
+  let op1 = new GetNodeOperation(rewriter, 1, [2, a, 3]);
+  let rule1 = new Rule(rewriter, [op1]);
+
+  let op2 = new GetNodeOperation(rewriter, 4, [a, 2]);
+  let rule2 = new Rule(rewriter, [op2]);
+
+
+  rewriter.apply(graph1, [rule1, rule2]);
 
 }
 

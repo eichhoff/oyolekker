@@ -1,37 +1,127 @@
 import {TreeMap} from './treemap'; // TODO: check if this implementation is actually O(log n) 
 import SortedSet from 'js-sorted-set';
 
+import {LabelCharacter, LabelAlphabet, Label, Node, Edge, Graph} from './graph';
+
+export class Rewriter {
+
+    // TODO: move to rule
+    /*
+    this.nodeVars = new TreeMap();
+    this.nodeLabelVars = new TreeMap();
+    this.edgeVars = new TreeMap();
+    this.edgeLabelVars = new TreeMap();
+    */
+
+  constructor(nodeAlphabet, edgeAlphabet) {
+    this.nodeAlphabet = nodeAlphabet;
+    this.edgeAlphabet = edgeAlphabet;
+
+    this.apply = function(graph, derivationProgram){
+      if (Array.isArray(derivationProgram)) {
+        for (let i in derivationProgram) {
+          derivationProgram[i].apply(graph);
+        }
+      } else {
+        // TODO
+      }
+    }
+  }
+  
+}
+
+export class Rule {
+  constructor(rewriter, directDerivationProgram) {
+    this.rewriter = rewriter;
+    this.directDerivationProgram = directDerivationProgram;
+  
+    if(Array.isArray(directDerivationProgram)) {
+      this.apply = function(graph){
+        for (let i in directDerivationProgram) {
+          directDerivationProgram[i].apply(graph);
+        }
+      }
+    } else {
+      // TODO
+    }
+  }
+
+}
+
+export class GetNodeOperation {
+  constructor(rewriter, nodeVarKey, characters) {
+    let targetPatternID = 0;
+    let targetPatternBitmask = 0;
+    let i = characters.length;
+    let maxCharacterID = rewriter.nodeAlphabet.size() - 1;
+    while (i--) {
+      if(characters[i].id) {
+        let baseFactor = Math.pow(rewriter.nodeAlphabet.size(), i);
+        targetPatternID += characters[i].id * baseFactor;
+        targetPatternBitmask += maxCharacterID * baseFactor;
+      } else {
+        //this.nodeLabelVars.put(characters[i], null);
+      }
+    }
+
+
+    this.apply = function(graph){
+      
+
+      graph.nodes.forEach(function(node) { 
+        let bitmaskedID = node.label.id & targetPatternBitmask;
+        if(bitmaskedID === targetPatternID) {
+          console.log('match', node)
+
+        }
+      });
+
+
+
+
+      /*let label = this.nodeLabels.get(id);
+      if(!label) label = new NodeLabel(this, id);
+      return label;*/
+
+    }
+
 
 
 /*
-Operation Array Binary tree Red-black tree
-Create  O(1)  O(1)  O(1)
-Length  O(1)  O(1)  O(1)
-Clear O(1)  O(n) (in garbage collector) O(n) (in garbage collector)
-Insert  O(n) (often slow) O(n) (often slow) O(lg n) (fast)
-Remove  O(n) (often slow) O(n) (often slow) O(lg n) (fast)
-Iterate O(n) (fast) O(n) (slowest)  O(n) (slower than Array)
-Find, Test  O(lg n) (fastest) O(n) (slowest)  O(lg n) (slower than Array)
-*/
+    this.compileGetEdge = function(edgeVarKey, characters){
+      let id = 0;
+      var i = characters.length;
+      while (i--) {
+        id += characters[i].id * Math.pow(this.edgeAlphabet.size(), i);
+      }
+
+      let label = this.edgeLabels.get(id);
+      if(!label) label = new EdgeLabel(this, id);
+      return label;
+
+    }*/
+  }
+}
+
+
+
+
+
+/*
 
 export class LabelCharacter {
   constructor(alphabet, object) {
     this.alphabet = alphabet;
     this.object = object;
     this.id = alphabet.nextCharacterID++;
-    this.alphabet.characters[this.id -1] = this; // array starts from 0; ids start from 1
+    this.alphabet.characters[this.id] = this;
   }
 }
 
 export class LabelAlphabet {
   constructor() {
-    //this.nextCharacterID = 0;
-    this.nextCharacterID = 1; // 0 is reserved for "no label at this position"; also needed for integer comparison, otherwise (0,1) => 1 would resut the same label as (1) => 1
+    this.nextCharacterID = 0;
     this.characters = [];
-
-    this.size = function() { // use always power of 2 alphabet sizes to enable bitmasking
-      return this.characters.length % 2 === 0 ? this.characters.length + 2 : this.characters.length + 1;
-    }
   }
 }
 
@@ -55,12 +145,7 @@ export class EdgeLabel {
 
 export class LabelFrequency {
   constructor(labels) {
-    /*let i = labels.length -1;
-    while(i--){
 
-    }*/
-
-    //new Float32Array([1,2,3,4,5,6,7,8,9])
   }
 }
 
@@ -87,58 +172,9 @@ const compareEdges = function(edge1, edge2) {
   diff = edge1.targetNode.id - edge2.targetNode.id;
   if(diff !== 0) return diff;
 
-  
-
-  /*
-  diff = edge1.labels.length - edge2.labels.length;
-  if(diff !== 0) return diff;
-
-  var i = edge1.labels.length;
-  while (i--) {
-    diff = edge1.labels[i].id - edge2.labels[i].id;
-    if(diff !== 0) return diff;
-  }
-  */
-
   return 0;
 };
-/*const compareEdges2 = function(edge1, edge2) { 
-  
-  let diff = edge1.labels.length - edge2.labels.length;
-  if(diff !== 0) return diff;
 
-  var i = edge1.labels.length;
-  while (i--) {
-    diff = edge1.labels[i].id - edge2.labels[i].id;
-    if(diff !== 0) return diff;
-  }
-
-  diff = edge1.sourceNode.labels.length - edge2.sourceNode.labels.length;
-  if(diff !== 0) return diff;
-
-  var i = edge1.sourceNode.labels.length;
-  while (i--) {
-    diff = edge1.sourceNode.labels[i].id - edge2.sourceNode.labels[i].id;
-    if(diff !== 0) return diff;
-  }
-
-  diff = edge1.targetNode.labels.length - edge2.targetNode.labels.length;
-  if(diff !== 0) return diff;
-
-  var i = edge1.targetNode.labels.length;
-  while (i--) {
-    diff = edge1.targetNode.labels[i].id - edge2.targetNode.labels[i].id;
-    if(diff !== 0) return diff;
-  }
-
-  diff = edge1.sourceNode.id - edge2.sourceNode.id;
-  if(diff !== 0) return diff;
-  
-  diff = edge1.targetNode.id - edge2.targetNode.id;
-  if(diff !== 0) return diff;
-
-  return 0;
-};*/
 export class Edge {
   constructor(graph, sourceNode, targetNode, label) {
     this.graph = graph;
@@ -164,7 +200,7 @@ export class Graph {
       let id = 0;
       var i = characters.length;
       while (i--) {
-        id += characters[i].id * Math.pow(this.nodeAlphabet.size(), i);
+        id += characters[i].id * Math.pow(this.nodeAlphabet.characters.length, i);
       }
       let label = this.nodeLabels.get(id);
       if(!label) label = new NodeLabel(this, id);
@@ -175,7 +211,7 @@ export class Graph {
       let id = 0;
       var i = characters.length;
       while (i--) {
-        id += characters[i].id * Math.pow(this.edgeAlphabet.size(), i);
+        id += characters[i].id * Math.pow(this.edgeAlphabet.characters.length, i);
       }
       let label = this.edgeLabels.get(id);
       if(!label) label = new EdgeLabel(this, id);
@@ -445,61 +481,7 @@ export class Graph {
 		}, 4000);
 	}
 
-
-
   }
 
-  
-     //contains
-
-      /*
-      var resortedEdges = new SortedSet({ comparator: compareByLabel });
-      this.edges.forEach(function(edge) { resortedEdges.insert(edge) });
-
-      var labelProfile = new Array();
-      resortedEdges.forEach(function(edge) { 
-        if (edge.inUse > 1) {
-          labelProfile.push(edge.sourceNode.label.id);
-          labelProfile.push(edge.label.id);
-          labelProfile.push(edge.targetNode.label.id);
-        } 
-      });
-
-      console.log(resortedEdges.map(function(edge) { return edge.label.inUse; })); // returns [ 20, 4 ]
-      */
-
-      /*
-    
-    var set = new SortedSet({ comparator: compareNumbers });
-    set.insert(5);
-    set.insert(3);
-    set.insert(2);
-    set.remove(3);
-    var yes = set.contains(2);
-    console.log(set.map(function(x) { return x * 2; })); // returns [ 20, 4 ]
-
-    */
-
-
-  // durch kanten durchgehen mit backtracking
-  // 1 kante übereinstimmung + knoten übereinstimmung
-  // knoten nach entropie sortieren?
-  // einzelne knoten können wahrscheinlich austauschbar sein -> später im baum -> sonst muss zu viel gebacktracked werden und so etwas wie ein rete algorithmus implementiert werden
-  // also einzelne knoten zuleztt
-  // möglichst eindeutige knoten zuerst
-  // eindeutige knoten sind jene die eine hohe entropie haben (ja?)
-  // knoten labels plus adjazente und inzidente labels
-  // 
-  // ID zuletzt
-
-
-}
-
-/*
-
-var i = array.length;
-
-while (i--) {
-  //do something
 }
 */
