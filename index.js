@@ -71,7 +71,7 @@ tan
 */
 import {LabelCharacter, LabelAlphabet, Label, Node, Edge, Graph} from './graph';
 
-import {Rewriter, Rule, GetNodeOperation} from './rewriting';
+import {Rewriter, Rule, GetNodeOperation, GetEdgeOperation} from './rewriting';
 
 /*
 const gpu = new GPU();
@@ -245,10 +245,11 @@ const main = function(){
   let rewriter = new Rewriter(nodeAlphabet, edgeAlphabet);
   
   let op1 = new GetNodeOperation(rewriter, 1, [2, a, 3]);
-  let rule1 = new Rule(rewriter, [op1]);
+  let op2 = new GetEdgeOperation(rewriter, 4, 5, 1, [x, y, z]);
+  let rule1 = new Rule(rewriter, [op1, op2]);
 
-  let op2 = new GetNodeOperation(rewriter, 4, [a, 2]);
-  let rule2 = new Rule(rewriter, [op2]);
+  let op3 = new GetNodeOperation(rewriter, 14, [a, 15]);
+  let rule2 = new Rule(rewriter, [op3]);
 
 
   rewriter.apply(graph1, [rule1, rule2]);
